@@ -6,11 +6,11 @@ import banicon from "../assets/lock.png";
 import {launchImageLibrary} from 'react-native-image-picker';
 import unbanicon from "../assets/green-lock.png";
 import { forwardRef, memo, useContext, useEffect, useImperativeHandle, useRef, useState } from "react";
-import temp from "../assets/temp.png";
 import { TextInput } from "react-native-gesture-handler";
 import { RippleButton } from "./ripplebutton";
 import { channelContext } from "../contexts";
 import { Modal } from "./modal";
+import { CachedImage } from '@georstat/react-native-image-cache';
 
 const handle_ban = (socket, channel, userid, username, index, setList, setBanList)=>{
     fetch(server+"/api/admin/ban", {method:'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({"channel_id": channel, "ban_target":userid})})
@@ -98,7 +98,7 @@ const handle_change_channelpic = (channel, setErr, update)=>{
     });
 }
 
-const handle_delete_channel = (channel, setChannels, swapChannel) => {
+const handle_delete_channel = (channel, setChannels, swapChannel) => {//TODO: use socket instead of api
     console.log(channel);
     fetch(`${server}/api/admin/delete`, {method:'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({"channel_id": channel})})
     .then((response)=>response.json())
@@ -113,7 +113,7 @@ const handle_delete_channel = (channel, setChannels, swapChannel) => {
 const MemberItem = memo(({index, socket, myusername, channel, username, userid, ownership, setList, setBanList})=>{
     return (
         <View style={mystyles.item}>
-            <Image source={{"uri":server+"/api/getpfp?userid="+userid+"&&"+new Date()}} style={{width:50,height:50,borderRadius:100}}></Image>
+            <CachedImage maxAge={10} source={`${server}/api/getpfp?userid=${userid}`} thumbnailSource="" style={{width:50,height:50,borderRadius:100}}></CachedImage>
             <Text style={{...styles.text, marginLeft:15}}>{username}</Text>
             {/*ownership&&myusername!==username&&
             <Pressable style={mystyles.banbtn} onPress={()=>handle_ban(server, socket, channel, userid, username, index, setList, setBanList)}>
@@ -162,6 +162,8 @@ export const ChannelSettings = ({style, socket, username, channel, close_func, o
             
             setList(memberlist);
             setBanList(banlist);
+        }).catch((err)=>{
+            console.log(err);
         });
     },[channel]);
     
@@ -244,7 +246,7 @@ const Settings_menu = forwardRef(({channel, setSelectedChannelName, SetOpenDelet
                     <View style={mystyles.edit}>
                         <Image style={mystyles.edit_icon} source={editicon}></Image>
                     </View>
-                    <Image style={mystyles.imageselector} defaultSource={temp} source={{uri: `${server}/api/geticon?channel_id=${channel}&updater=${updater}`}}></Image>
+                    <Image style={mystyles.imageselector} source={{uri: `${server}/api/geticon?channel_id=${channel}&updater=${updater}`}}></Image>
                 </Pressable>
                 {iconErr&&<Text style={styles.text}>⚠️{iconErr}</Text>}
             </View>
@@ -264,7 +266,7 @@ const mystyles = StyleSheet.create({
         height:Dimensions.get('window').height,
         left:0,
         right:0,
-        backgroundColor:'#2c3632',
+        backgroundColor:styles.app.backgroundColor,
         padding:'5%',
         zIndex:5
     },
@@ -287,7 +289,7 @@ const mystyles = StyleSheet.create({
         margin:10,
         padding:10,
         borderBottomWidth:1,
-        borderColor:'white'
+        borderColor:'lightblue'
     },
     setting_container:{
         marginRight:10,

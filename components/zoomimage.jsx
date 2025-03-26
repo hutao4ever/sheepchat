@@ -1,9 +1,10 @@
 import React, { useRef, useState } from "react";
-import { Animated, View, Dimensions } from "react-native";
+import { Animated, View, Dimensions, ActivityIndicator } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 
 export const ZoomImage = ({source, setCarousel})=>{
     const [panEnabled, setPanEnabled] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const scale = useRef(new Animated.Value(1)).current;
     const scaleValue = useRef(0);
@@ -96,12 +97,16 @@ export const ZoomImage = ({source, setCarousel})=>{
 
     return (
         <View>
+          {loading&&<ActivityIndicator size="large" style={{marginTop:200}} />}
           <GestureDetector gesture={composed}>
               <Animated.Image 
                   source={source}
+                  onLoadStart={()=>setLoading(true)}
+                  onLoadEnd={()=>setLoading(false)}
                   style={{
+                    marginTop:50,
                     width: '100%',
-                    height: '100%',
+                    height: '90%',
                     transform: [{scale}, { translateX }, { translateY }]
                   }}
                   resizeMode="contain"

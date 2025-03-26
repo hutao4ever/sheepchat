@@ -1,9 +1,9 @@
 import { server } from "../server_addr";
 import {React, useState, useEffect, useRef, useCallback} from "react";
-import {Dimensions} from 'react-native';
+import {ActivityIndicator, Dimensions} from 'react-native';
 import notifee from '@notifee/react-native';
 import {ChannelMenu} from './channelmenu';
-import {ChatHome} from "./chathomewidget";
+import {User} from "./user";
 import {ChannelSettings} from "./channelsettings";
 import { View, Text, Image, Pressable, Animated, Keyboard } from "react-native";
 import { FlashList } from "@shopify/flash-list";
@@ -15,12 +15,13 @@ import share_icon from "../assets/share.png";
 import members_icon from "../assets/people.png";
 import settings_icon from "../assets/gear.png";
 import logout_icon from "../assets/logout.png";
+import return_icon from "../assets/arrowreturn.png";
 import { styles } from "../stylesheets/styles";
 import { MessageItem } from "./messageitem";
 import { ChannelSharer } from "./channelsharer";
 import { LargeImageView } from "./largeimageview";
 import { channelContext } from "../contexts";
-import { MessageItemOperations } from "./messageitemop";
+import { MessageItemOptions } from "./messageitemop";
 import { MoveToEndButton } from "./movetoend";
 
 const notifyMessage = async (channel_name, user, content) => {
@@ -55,8 +56,7 @@ const addMessage = async (setData, channelCache, channel, msg, prepend, self, ch
     }
     
     if(self){
-        msg.username = msg.sender.split("#")[0];
-        //timestring = `今天 ${timestamp.getHours()}:${timestamp.getMinutes().toString().padStart(2,'0')}`;
+        msg.username = msg.username.split("#")[0];//remove number tag
     }else{
         const response = await fetch(`${server}/api/getusername?userid=${msg.sender}`);
         let data = await response.text();
@@ -137,25 +137,26 @@ const removeMessage = (setData, channel, channelCache, messageid)=>{
     channelCache.current[channel].data = channelCache.current[channel].data.filter((item)=>{if(item.key !== messageid){return item;}});
 }
 
-const SendHandler = (socket, channel, setData, channelCache, message, username)=>{
+const SendHandler = (socket, channel, setData, channelCache, message, username, userID)=>{
     if(message.fileIds){
-        socket.emit('incoming', JSON.stringify([channel, {"img":message.fileIds}]), (response)=>{
+        socket.emit('incoming', [channel, {"img":message.fileIds}], (response)=>{
             if(response.res == "ok"){
-                addMessage(setData, channelCache, channel, {"sender":username, "timestamp":response.timestamp,"ID":response.id, "content":{"img":message.fileIds}}, false, true);
+                addMessage(setData, channelCache, channel, {"sender":userID, "username":username, "timestamp":response.timestamp,"ID":response.id, "content":{"img":message.fileIds}}, false, true);
             }
         });
     }else{
-        socket.emit('incoming', JSON.stringify([channel, message]), (response)=>{
+        socket.emit('incoming', [channel, message], (response)=>{
             if(response.res == "ok"){
-                addMessage(setData, channelCache, channel, {"sender":username, "timestamp":response.timestamp, "ID":response.id, "content":message}, false, true);
+                addMessage(setData, channelCache, channel, {"sender":userID, "username":username, "timestamp":response.timestamp, "ID":response.id, "content":message}, false, true);
             }
         });
     }
 }
 
-export const ChatMain = ({navigation, socket, username, setSocket, setUsername})=>{
+export const ChatMain = ({navigation, socket, username, userID, setUsername})=>{
     const [channels,setChannels] = useState([]);//store info of every channel
-
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(false);
     const [data, setData] = useState(); //store rendered messages 
     const [more, setMore] = useState(true); //if there is more history message to load
     const [page, setPage] = useState(0); //how much history has loaded
@@ -166,9 +167,9 @@ export const ChatMain = ({navigation, socket, username, setSocket, setUsername})
     const channelRef = useRef();
     channelRef.current=channel;
     const [ownership, setOwnership] = useState(false);//if user owns the current channel
-    const [selectedChannelName, SetSelectedChannelName] = useState(); //current channel name
+    const [selectedChannelName, setSelectedChannelName] = useState(); //current channel name
     const [openShareModal, setOpenShareModal] = useState(false);
-    const [openChannelMenu, SetOpenChannelMenu] = useState(false);
+    const [openChannelMenu, SetOpenChannelMenu] = useState(true);
     const openChannelMenuRef = useRef();
     openChannelMenuRef.current = openChannelMenu;
     const openMemberList = useRef(false);
@@ -201,7 +202,7 @@ export const ChatMain = ({navigation, socket, username, setSocket, setUsername})
         }
         if(channel_id==""){
             setChannel(false);
-            SetSelectedChannelName(false);
+            setSelectedChannelName(false);
             return;
         }
         
@@ -211,11 +212,12 @@ export const ChatMain = ({navigation, socket, username, setSocket, setUsername})
 
         //reset values
         setChannel(channel_id);
-        SetSelectedChannelName(channel_name);
+        setSelectedChannelName(channel_name);
         setData([]);
         setPage(1);
         setMore(false);
         setContentOffset(0);
+        setError(false);
         
         //check if we cached the channel
         if(channel_id in channelCache_.current){
@@ -232,6 +234,7 @@ export const ChatMain = ({navigation, socket, username, setSocket, setUsername})
                 setContentOffset(saved.contentOffset);
             }
         }else{
+            setLoading(true);
             loader(channel_id);
         }
     }
@@ -269,27 +272,32 @@ export const ChatMain = ({navigation, socket, username, setSocket, setUsername})
         }catch(err){
             console.log(err);
         }
-        var newData = await response.json();
+        var RecievedMessages = await response.json();
         
-        if(newData.status=="fail"){
+        if(RecievedMessages.status=="fail"){
+            setSelectedChannelName(null);
             setChannel(false);
+            setError("服务器错误。此群聊目前无法使用。");
+            setLoading(false);
             return false;
         }
 
-        newData=newData.data;
+        RecievedMessages=RecievedMessages.data;
         channelCache_.current[channel_] = {};
 
-        if(newData.slice(-1)[0] === "end"){
+        if(RecievedMessages.slice(-1)[0] === "end"){
             setMore(false);
             channelCache_.current[channel_].moretoload = false;
-            newData.pop();
+            RecievedMessages.pop();
         }
 
-        await addMessage_more(channel_?channel_:channel, setData, channelCache_, newData);
+        await addMessage_more(channel_?channel_:channel, setData, channelCache_, RecievedMessages);
 
+        //if we are loading more messages for the current channel, increase page number
         if(!channel_){
             setPage((page) => page+1);
         }
+        setLoading(false);
     },[page]);
 
     const DeleteHandler = useCallback((messageid) => {
@@ -300,7 +308,7 @@ export const ChatMain = ({navigation, socket, username, setSocket, setUsername})
         });
     },[socket, channel])
 
-    const channelmenu_slide = useRef(new Animated.Value(-Dimensions.get("window").width)).current;
+    const channelmenu_slide = useRef(new Animated.Value(0)).current;
     const toggle_channel_menu = ()=>{
         let openChannelMenu = openChannelMenuRef.current;
         Keyboard.dismiss();
@@ -382,6 +390,7 @@ export const ChatMain = ({navigation, socket, username, setSocket, setUsername})
         console.log("elapsed load time:",elapsedTimeInMs);
     },[])
 
+    const renderItem= useCallback(({item})=>(<MessageItem item={item} setOpenImageView={setOpenImageView} setMessageMenuActive={activateMessageMenu} offMessageMenu={offMessageMenu} />),[]);
     return(
         <>
             {
@@ -391,12 +400,17 @@ export const ChatMain = ({navigation, socket, username, setSocket, setUsername})
             <View style={chat.top_menu}>
                 <View style={{flex:1, flexDirection:'row'}}>
                     <View style={{flex:1}}>
-                        <Pressable onPress={toggle_channel_menu}>
-                            <Image source={sheepchat_icon} style={chat.menu_icon}></Image>
+                        <Pressable onPress={()=>{}}>
+                            {openChannelMenu?
+                            <Image source={sheepchat_icon} style={chat.menu_icon}></Image>:
+                            <Pressable onPress={()=>{toggle_channel_menu()}}>
+                                <Image source={return_icon} style={chat.menu_icon}></Image>
+                            </Pressable>
+                            }
                         </Pressable>
                     </View>
                     <View style={{flex:2, alignItems:'center'}}>
-                        <Text style={{...styles.large_text, marginTop:-3, zIndex:1}}>{selectedChannelName}</Text>
+                        <Text style={{...styles.large_text, color:"#ffffff", marginTop:-3, zIndex:1}}>{selectedChannelName}</Text>
                     </View>
                     <View style={{flex:1, flexDirection:'row'}}>
                         {selectedChannelName&&
@@ -412,7 +426,7 @@ export const ChatMain = ({navigation, socket, username, setSocket, setUsername})
                         {!selectedChannelName&&
                             <Pressable onPress={handleLogout}>
                                 <View style={{flex:1, flexDirection:'row', justifyContent:'center'}}>
-                                    <Text style={{...styles.text,marginTop:3}}>退出</Text>
+                                    <Text style={{...styles.text_white,marginTop:3}}>退出</Text>
                                     <Image source={logout_icon} style={{width:25,height:25,marginTop:3,marginLeft:3}} />
                                 </View>
                             </Pressable>
@@ -421,19 +435,18 @@ export const ChatMain = ({navigation, socket, username, setSocket, setUsername})
                 </View>
             </View>
             
-            <channelContext.Provider value={{channels, setChannels, swapChannel}}>
-                <ChannelMenu socket={socket} navigation={navigation} style={{transform:[{translateX:channelmenu_slide}]}} swapChannel={swapChannel} channel={channel} />
-                
-                {channel?//display startup screen or chat screen based on whether user selected channel
-                <>
-                    <ChannelSettings style={{transform:[{translateY:memberlist_slide}]}} channel={channel} username={username} socket={socket} close_func={toggle_members_list} ownership={ownership} setOwnership={setOwnership} setSelectedChannelName={SetSelectedChannelName}/>
+            <channelContext.Provider value={{channels, setChannels, swapChannel}}>                
+                <ChannelMenu socket={socket} navigation={navigation} style={{transform:[{translateX:channelmenu_slide}]}} username={username} setUsername={setUsername} swapChannel={swapChannel} channel={channel} />
+                {error&&<Text style={styles.error_text}>{error}</Text>}
+                {channel?
+                <> 
+                    <ChannelSettings style={{transform:[{translateY:memberlist_slide}]}} channel={channel} username={username} socket={socket} close_func={toggle_members_list} ownership={ownership} setOwnership={setOwnership} setSelectedChannelName={setSelectedChannelName}/>
                     <View style={chat.chat_main}>
-                        {data.length > 0 && //the list is not rendered until data is loaded
+                        {!loading && !error ? //the list is not rendered until data is loaded
                         <FlashList
                             inverted
                             data={data}
-                            renderItem={({item})=><MessageItem item={item} setOpenImageView={setOpenImageView} setMessageMenuActive={activateMessageMenu} offMessageMenu={offMessageMenu} />}
-                            ListFooterComponent={<Text style={{...styles.header, marginBottom:20}}>欢迎使用羊论。</Text>}
+                            renderItem={renderItem}
                             ref={messageContainer}
                             onLoad={onLoadListener}
                             onScroll={onScroll}
@@ -441,17 +454,18 @@ export const ChatMain = ({navigation, socket, username, setSocket, setUsername})
                             estimatedItemSize={80}
                             scrollEnabled={!messageMenuActive}
                             keyExtractor={(item)=>item.key}
-                        />}
+                            overrideProps={{contentContainerStyle: {flexGrow: 1,flexDirection: 'column-reverse'}}}
+                            showsVerticalScrollIndicator={false}
+                        />:
+                        <ActivityIndicator size="large" />
+                        }
                     </View>
-                    <MessageItemOperations offMessageMenu={offMessageMenu} animateMenuSlide={animateMessageMenu} DeleteHandler={DeleteHandler} item={messageMenuActive} />
+                    <MessageItemOptions offMessageMenu={offMessageMenu} animateMenuSlide={animateMessageMenu} DeleteHandler={DeleteHandler} item={messageMenuActive} current_user={userID}/>
                     {contentOffset > 1200 && <View style={{width:'100%', alignItems:'center'}}><MoveToEndButton onPress={()=>{offMessageMenu(); messageContainer.current.scrollToOffset({animated:true, offset:0})}} /></View>}
 
-                    <ChatSender SendHandler={(message)=>{SendHandler(socket, channel, setData, channelCache_, message, username)}} onFocus={()=>offMessageMenu()} setFiles={setFiles} files={files} channel={channel} />
+                    <ChatSender SendHandler={(message)=>{SendHandler(socket, channel, setData, channelCache_, message, username, userID)}} onFocus={()=>offMessageMenu()} setFiles={setFiles} files={files} channel={channel} />
                     {openImageView && <LargeImageView source={openImageView[0]} index={openImageView[1]} closefunc={()=>{setOpenImageView(false)}} />}
-                </>
-                :
-                <ChatHome username={username} setUsername={setUsername} setLogout={setLogout} setSocket={setSocket} navigation={navigation} />
-                }
+                </>:<></>}
             </channelContext.Provider>
         </>
     )

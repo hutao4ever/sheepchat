@@ -9,7 +9,7 @@ const modal = StyleSheet.create({
         left: 0,
         bottom: 0,
         right: 0,
-        backgroundColor: 'rgb(109, 135, 173)',
+        backgroundColor: 'rgba(0,0,0,0.84)',
         zIndex: 3,
         alignItems:'center',
         justifyContent:'center'
@@ -17,7 +17,7 @@ const modal = StyleSheet.create({
     container:{
         padding:15,
         borderRadius:3,
-        backgroundColor:'#2c3632',
+        backgroundColor:'#F1EFEC',
         minWidth:200,
         maxWidth:Dimensions.get('window').width-20
     }
@@ -29,7 +29,7 @@ export const Modal = ({title, content, close_func, interactions})=>{
             <View style={{...modal.container}}>
                 <Pressable onPress={close_func} style={{alignSelf:'flex-start'/*makes button width fit text*/}}><Text style={styles.text}>X</Text></Pressable>
                 <View>
-                    <Text style={styles.large_text}>{title}</Text>
+                    {title && <Text style={styles.large_text}>{title}</Text>}
                     {content}
                     {interactions}
                 </View>

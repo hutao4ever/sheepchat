@@ -1,4 +1,4 @@
-import { Pressable, Text, View, StyleSheet } from "react-native"
+import { Text, View, StyleSheet } from "react-native"
 import { styles } from "../stylesheets/styles"
 import { useEffect, useRef, useState } from "react";
 
@@ -26,10 +26,10 @@ const update_animation = (counter, setString) => {
     if(counter > 7){
         counter = 0;
     }
-    setTimeout(()=>{update_animation(counter, setString)}, 200);
+    setTimeout(()=>{update_animation(counter, setString)}, 100);
 }
 
-export const LoadIndicator = ()=>{
+export const LoadIndicator = ({style, notext=false})=>{
     const count = useRef(0);
     const [string, setString] = useState("");
 
@@ -38,10 +38,10 @@ export const LoadIndicator = ()=>{
     },[]);
 
     return (
-        <View style={{...modal.container}}>
+        <View style={style}>
             <View>
                 <Text style={styles.text}>{string}</Text>
-                <Text style={styles.text}>加载中</Text>
+                {notext?<></>:<Text style={styles.text}>加载中</Text>}
             </View>
         </View>
     )

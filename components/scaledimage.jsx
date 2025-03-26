@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, memo } from "react";
 import { Image } from "react-native";
+import { CachedImage } from '@georstat/react-native-image-cache';
 import placeholder from "../assets/image.png";
 
 export const ScaledImage = ({source, width_, height_}) => {
@@ -34,12 +35,10 @@ export const ScaledImage = ({source, width_, height_}) => {
     }, []);
 
    return (
-        <>
-       <Image
-           source={source}
-           defaultSource={placeholder}
+       <CachedImage
+           source={source.uri}
+           thumbnailSource={""}
            style={{ height: height, width: width }}
        />
-       </>
    );
 }

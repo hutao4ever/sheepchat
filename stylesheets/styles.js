@@ -1,4 +1,7 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet,Dimensions } from 'react-native';
+
+const text_color = "#1B1725";
+const background_color = "#F1EFEC";
 
 export const styles = StyleSheet.create({
     app:{
@@ -6,30 +9,29 @@ export const styles = StyleSheet.create({
         top:0,
         bottom:0,
         left:0,
-        right:0
+        right:0,
+        backgroundColor:background_color
     },
     error_text:{
-        color:'#f0cb65'
+        color:'#edb415'
     },
     button:{
         marginTop: 20,
         height: 35,
-        backgroundColor: 'rgba(0, 0, 0, 0)',
+        backgroundColor: background_color,
         borderWidth: 1.5,
         borderStyle: 'solid',
-        borderColor: '#ffffff',
+        borderColor: '#4e4b5c',
         borderRadius: 3,
         alignItems: 'center',
         justifyContent: 'center'
     },
     link:{
-        marginTop: 20,
         height: 25,
         width: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0)',
         borderBottomWidth: 1.5,
         borderStyle: 'solid',
-        borderColor: '#ffffff',
+        borderColor: '#4e4b5c',
         borderRadius: 3,
         alignItems: 'center',
         justifyContent: 'center'
@@ -39,8 +41,8 @@ export const styles = StyleSheet.create({
         width:'100%',
         borderWidth: 1.5,
         borderStyle: 'solid',
-        borderColor: '#ffffff',
-        color: '#ffffff',
+        borderColor: '#4e4b5c',
+        color: text_color,
         height: 30,
         borderRadius: 3,
         marginTop: 10,
@@ -59,7 +61,7 @@ export const styles = StyleSheet.create({
     },
     version_info:{
         position:'absolute',
-        bottom:0,
+        top:Dimensions.get("window").height-40,//prevent keyboard from pushing this up
         alignItems:'center'
     },
     version_text:{
@@ -69,34 +71,34 @@ export const styles = StyleSheet.create({
         width:200
     },
     main_logo:{
-        backgroundColor:'rgba(100,100,100,0.5)',
+        backgroundColor:'rgb(30,30,30)',
         width:85,
         height:85,
         marginBottom:10,
-        borderRadius:20,
+        borderRadius:10,
         padding:5
     },
     text:{
-        color:"#ffffff",
+        color:text_color,
         fontSize:16
     },
-
+    text_white:{
+        color:"white",
+        fontSize:16
+    },
+    large_text:{
+        color:text_color,
+        fontSize:22
+    },
     header:{
         color:"#ffffff",
         fontSize:32
     },
-
-    large_text:{
-        color:"#ffffff",
-        fontSize:22
-    },
-
     link_text:{
         color: '#0000EE',
         textDecorationLine:'underline',
         textDecorationColor: '#0000EE'
     },
-
     bottom_error_popup:{
         backgroundColor:'#ffd000',
         position:'absolute',
@@ -105,5 +107,11 @@ export const styles = StyleSheet.create({
         right:0,
         height:30,
         alignItems:'center'
+    },
+    tiny_icon:{
+        width:20,
+        height:20,
+        marginTop:15,
+        marginLeft:5
     }
 });

@@ -8,7 +8,7 @@ import { Animated, Image, Text, Pressable } from 'react-native';
 import { chat } from '../stylesheets/chatstyles';
 import { useRef } from 'react';
 
-export const MessageItemOperations = ({offMessageMenu, animateMenuSlide, DeleteHandler, item})=>{
+export const MessageItemOptions = ({offMessageMenu, animateMenuSlide, DeleteHandler, item, current_user})=>{
     const ylocation = useRef();
     if(item){
         ylocation.current=item.py-20;
@@ -17,10 +17,12 @@ export const MessageItemOperations = ({offMessageMenu, animateMenuSlide, DeleteH
         <Animated.View style={{position:'absolute', right:10, top:ylocation.current, transform:[{translateX:animateMenuSlide}]}}>
             <LinearGradient start={{x: 1, y: 0}} end={{x: 0, y: 0}} colors={['#073591', '#567fd1', '#cf3879']} style={chat.msgActionmenu}>
                 <ClipboardIcon onClick={()=>{if(!item.img){Clipboard.setString(item.text)}}} />
+                {(item.sender == current_user) &&
                 <Pressable onPress={()=>{offMessageMenu(); DeleteHandler(item.key)}} style={{flexDirection:'row'}}>
                     <Image source={deleteicon} style={{width:20, height:20, marginRight:5, marginLeft:5, marginTop:3}} />
-                    <Text style={styles.text}>删除</Text>
+                    <Text style={styles.text_white}>删除</Text>
                 </Pressable>
+                }
             </LinearGradient>
         </Animated.View>
     )

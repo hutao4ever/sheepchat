@@ -29,7 +29,7 @@ export const ChannelSharer = ({channel})=>{
                 <Text style={styles.text}>{code}</Text>
                 <ClipboardIcon onClick={()=>{Clipboard.setString(code)}} />
             </View>:
-            <RippleButton content={"生成邀请码"} onClick={generate_code}></RippleButton>
+            <RippleButton content={"生成邀请码"} onClick={generate_code} textcolor={styles.text.color}></RippleButton>
             }
         </>
     )

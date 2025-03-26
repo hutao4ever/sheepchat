@@ -2,6 +2,7 @@ import { server } from "../server_addr";
 import picture_icon from "../assets/image.png";
 import url_icon from "../assets/curlybracket.png";
 import attach_icon from "../assets/paperclip.png";
+import send_icon from "../assets/send.png";
 import {launchImageLibrary} from 'react-native-image-picker';
 import {chat} from '../stylesheets/chatstyles';
 import { Modal } from "./modal";
@@ -10,6 +11,25 @@ import { useState } from "react";
 import { styles } from "../stylesheets/styles";
 import { RippleButton } from "./ripplebutton";
 import { LoadIndicator } from "./loadindicator";
+
+const fetch = async (
+  url,
+  { timeout = 10000, ...fetchOptions } = {}
+) => {
+  const controller = new AbortController();
+
+  const abort = setTimeout(() => {
+    controller.abort();
+  }, timeout);
+
+  const response = await globalThis.fetch(url, {
+    ...fetchOptions,
+    signal: controller.signal,
+  });
+
+  clearTimeout(abort);
+  return response;
+};
 
 const upload_files = async (server, files, channel, setUploadErr)=>{
   const formData = new FormData();
@@ -92,23 +112,18 @@ export const ChatSender = ({SendHandler, setFiles, files, channel, onFocus})=>{
                           </View>
                           <Text style={styles.error_text}>{uploadErr}</Text>
                           <View style={{flexDirection:'row'}}>
-                            <RippleButton style={{flex:1, margin:5}} content={"重新选择"} onClick={()=>{launchNativeImageLibrary()}}></RippleButton>
-                            <RippleButton style={{flex:1}} content={"确认"} onClick={()=>{setIsUploading(true); handle_image_send();}}></RippleButton>
+                            <RippleButton style={{flex:1, margin:5}} content={"重新选择"} onClick={()=>{launchNativeImageLibrary()}} textcolor={"black"}></RippleButton>
+                            <RippleButton style={{flex:1}} content={"确认"} onClick={()=>{setIsUploading(true); handle_image_send();}} textcolor={"black"}></RippleButton>
                           </View>
                         </View>
                       }
                     </>
                   :
-                  <View style={{padding:'10%', flexDirection:'row'}}>
-                      <Pressable style={{justifyContent:'center', alignItems:'center', margin:10}} onPress={()=>{launchNativeImageLibrary()}}>
-                          <Image style={{width:80, height:80}} source={picture_icon} />
-                          <Text style={styles.text}>从相册选择</Text>
-                      </Pressable>
-                      <View style={{justifyContent:'center', alignItems:'center', margin:10}}>
-                          <Image style={{width:80, height:80}} source={url_icon} />
-                          <Text style={styles.text}>使用url</Text>
-                      </View>
-                  </View>}
+                  <Pressable style={{justifyContent:'center', alignItems:'center', margin:10}} onPress={()=>{launchNativeImageLibrary()}}>
+                      <Image style={{width:80, height:80}} source={picture_icon} />
+                      <Text style={styles.text}>从相册选择</Text>
+                  </Pressable>
+                  }
                 </>
                 }
             />
@@ -117,17 +132,21 @@ export const ChatSender = ({SendHandler, setFiles, files, channel, onFocus})=>{
             <TextInput 
               multiline 
               style={chat.sendinput} 
-              onFocus={onFocus} 
-              onKeyPress={(e)=>{if(e.nativeEvent.key=='Enter'){SendHandler(drafts[channel]); 
-              setTimeout(()=>{setDrafts((drafts)=>({...drafts, [channel]:""}))}, 0); }}} 
+              onFocus={onFocus}
               value={drafts[channel]} 
               onChangeText={(text) => setDrafts((drafts)=>({...drafts, [channel]:text}))} 
               placeholder="换行发送消息" 
               placeholderTextColor={'#ffffff'} 
             />
 
-            <Pressable style={chat.attachment_button} onPress={()=>{setOpenAttachModal(true)}}>
-                <Image style={{width:30, height:30}} source={attach_icon} />
+            <Pressable style={{...chat.action_button,backgroundColor:'#d81e5b'}} onPress={
+              ()=>{SendHandler(drafts[channel]); setTimeout(()=>{setDrafts((drafts)=>({...drafts, [channel]:""}))}, 0); }
+            }>
+                <Image style={chat.action_button_icon} source={send_icon} />
+            </Pressable>
+
+            <Pressable style={{...chat.action_button,...chat.action_button_hollow}} onPress={()=>{setOpenAttachModal(true)}}>
+                <Image style={chat.action_button_icon} source={attach_icon} />
             </Pressable>
         </View>
         </>

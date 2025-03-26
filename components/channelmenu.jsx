@@ -1,17 +1,19 @@
 import { server } from "../server_addr";
 import { useEffect, useState, memo, useContext } from "react";
 import { Modal } from "./modal";
-import { View, Image, Text, Animated, StyleSheet, FlatList, Pressable, ImageBackground, TextInput } from "react-native";
+import { View, Image, Text, Animated, StyleSheet, FlatList, Pressable, TextInput } from "react-native";
 import { RippleButton } from "./ripplebutton";
 import {Dimensions} from 'react-native';
-import add_icon from "../assets/plus.png";
+import add_icon from "../assets/plus-black.png";
 import link_icon from "../assets/link.png";
 import create_icon from "../assets/asterisk.png";
 import home_icon from "../assets/home.png";
-import placeholder from "../assets/temp.png";
+import placeholder from "../assets/starticon.png";
 import { styles } from "../stylesheets/styles";
 import { LoadIndicator } from "./loadindicator";
 import { channelContext } from "../contexts";
+import { User } from "./user";
+import { CachedImage } from "@georstat/react-native-image-cache";
 const _ = require('lodash');
 
 const menu_styles = StyleSheet.create({
@@ -19,8 +21,8 @@ const menu_styles = StyleSheet.create({
         position:'absolute',
         width:Dimensions.get('window').width,
         height:Dimensions.get('window').height,
-        top:40,
-        backgroundColor:'#2c3632',
+        backgroundColor:styles.app.backgroundColor,
+        top:45,
         zIndex:2
     },
     container:{
@@ -32,19 +34,20 @@ const menu_styles = StyleSheet.create({
         height:150,
         margin:'5%',
         borderWidth:2,
-        borderColor:'#ffffff',
-        borderRadius:5
+        borderColor:'#1B1725',
+        borderRadius:5,
+        padding:10,
+        alignItems:'center'
     },
     card_inner:{
-        position:'relative',
-        flex:1
+        width:'100%',
+        height:'90%',
     },
     card_text:{
         position:'absolute',
         bottom:0,
         width:'100%',
         height:35,
-        backgroundColor:'rgba(39, 56, 50, 0.7)',
         justifyContent:'center',
         alignItems:'center'
     },
@@ -62,7 +65,9 @@ const menu_styles = StyleSheet.create({
     }
 })
 
-const ChannelThumbnail = memo(({id, name, setOpenChannelModal, swapChannel})=>(
+const ChannelThumbnail = memo(({id, name, setOpenChannelModal, swapChannel})=>{
+    const placeholder_uri = Image.resolveAssetSource(placeholder).uri;
+    return (
     !id?
     <Pressable style={{...menu_styles.card,justifyContent:'center',alignItems:'center'}} onPress={()=>{setOpenChannelModal(true)}}>
         <Image style={{width:50, height:50, marginBottom:10}} source={add_icon} />
@@ -70,15 +75,17 @@ const ChannelThumbnail = memo(({id, name, setOpenChannelModal, swapChannel})=>(
     </Pressable>
     :
     <Pressable style={menu_styles.card} onPress={()=>{swapChannel(id, name);}}>
-        <ImageBackground style={{...menu_styles.card_inner}} defaultSource={placeholder} source={{uri:`${server}/api/geticon?channel_id=${id}&updater=${new Date()}`}}>
+            <CachedImage style={{width:100, height:100, borderRadius:50, overflow:"hidden"}} thumbnailSource={placeholder_uri} source={`${server}/api/geticon?channel_id=${id}&updater=${new Date()}`} blurRadius={0} resizeMode="contain"/>
+        
             <View style={menu_styles.card_text}>
                 <Text numberOfLines={1} ellipsizeMode="tail" style={styles.text}>{name}</Text>
             </View>  
-        </ImageBackground>
+        
     </Pressable>
-), (a,b)=>a.name==b.name);
+    )
+}, (a,b)=>a.name==b.name);
 
-export const ChannelMenu = ({navigation, style, swapChannel, socket}) => {
+export const ChannelMenu = ({navigation, style, swapChannel, username, setUsername, socket}) => {
     const channels = useContext(channelContext).channels;
     const setChannels = useContext(channelContext).setChannels;
 
@@ -87,7 +94,7 @@ export const ChannelMenu = ({navigation, style, swapChannel, socket}) => {
     const [createErr, setCreateErr] = useState(null);
     const [joinErr, setJoinErr] = useState(null);
     const [createName, setCreateName] = useState();
-    const [joinId, setJoinId] = useState();
+    const [joinId, setJoinId] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(()=>{
@@ -127,6 +134,7 @@ export const ChannelMenu = ({navigation, style, swapChannel, socket}) => {
             setIsLoading(false);
         }).catch((e)=>{
             setIsLoading(false);
+            setCreateErr("网络请求失败，请重试");
             console.log(e);
         });
     }
@@ -161,6 +169,9 @@ export const ChannelMenu = ({navigation, style, swapChannel, socket}) => {
                     setJoinErr("错误:"+data.err);
                 }
             }
+        }).catch((e)=>{
+            setCreateErr("网络请求失败，请重试");
+            console.log(e);
         });
     }
 
@@ -177,35 +188,33 @@ export const ChannelMenu = ({navigation, style, swapChannel, socket}) => {
                 </Pressable>
                 <Pressable style={{...menu_styles.card_button, backgroundColor:'#4daae8'}} onPress={()=>{setModalStatus("create")}}>
                     <Image source={create_icon} style={menu_styles.card_button_img}></Image>
-                    <Text>自创群组</Text>
+                    <Text>创建群聊</Text>
                 </Pressable>
             </View>}
             {modalstatus=="create" && 
                 <>
                 {isLoading?<LoadIndicator />:
                 <View>
-                    <TextInput style={{...styles.input, marginTop:-10}} onChangeText={(text)=>{setCreateName(text)}} placeholder="输入一个群聊名称" placeholderTextColor={"#ffffff"} maxLength={25} />
+                    <TextInput style={{...styles.input}} onChangeText={(text)=>{setCreateName(text)}} placeholder="输入一个群聊名称" placeholderTextColor={styles.text.color} maxLength={25} />
                     {createErr && <Text style={{margin:5,...styles.error_text}}>{createErr}</Text>}    
-                    <RippleButton content={"确认"} onClick={create_channel}/>
+                    <RippleButton content={"确认"} onClick={create_channel} textcolor={styles.text.color}/>
                 </View>}
                 </>
             }
             {modalstatus=="join" && 
             <View>
-                <TextInput style={styles.input} onChangeText={(text)=>{setJoinId(text)}} placeholder="输入/粘贴群聊id" placeholderTextColor={"#ffffff"} maxLength={36}/>
-                {joinErr && <Text style={{margin:5,...styles.error_text}}>{joinErr}</Text>}    
-                <RippleButton content={"确认"} onClick={join_channel}/>
+                <TextInput style={styles.input} onChangeText={(text)=>{setJoinId(text)}} placeholder="输入/粘贴群聊id" placeholderTextColor={styles.text.color} maxLength={36}/>
+                {joinErr && <Text style={{...styles.error_text}}>{joinErr}</Text>}    
+                <RippleButton content={"确认"} onClick={join_channel} textcolor={styles.text.color} />
             </View>}
             </>
             } />:null
         }
         
         <Animated.View style={{...menu_styles.channel_menu,...style}}>
+            <User username={username} setUsername={setUsername}></User>
             <View style={menu_styles.container}>
-                <Pressable onPress={()=>{swapChannel("")}}>
-                    <Text style={{...styles.text, margin:10}}><Image source={home_icon} style={{width:30,height:30}} />回到主页</Text>
-                </Pressable>
-                <FlatList 
+                <FlatList
                     data={[{key:0},...channels]}
                     renderItem={({item})=><ChannelThumbnail id={item.channel_id} name={item.channel_name} setOpenChannelModal={setOpenChannelModal} swapChannel={swapChannel} />}
                     numColumns={2}

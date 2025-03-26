@@ -1,44 +1,33 @@
 import { StyleSheet } from 'react-native';
+import { styles } from './styles';
 
 export const chat = StyleSheet.create({
     top_menu:{
         width:'100%',
         height:44,
         backgroundColor:'#1b211f',
-        padding:5
+        paddingHorizontal:5,
+        paddingBottom:8,
+        borderBottomWidth:1,
+        borderColor:"grey"
     },
     menu_icon:{
         width:35,
         height:35,
         marginHorizontal:10
     },
-    start:{
-        flex:1,
-        position:'relative',
-        zIndex:1,
-        alignItems:'center',
-        alignContent:'center'
-    },
-    start_inner:{
-        width:'80%',
-        height:'70%',
-        margin:'5%'
-    },
-    start_icon:{
-        width:180,
-        height:180,
-        resizeMode:'contain'
-    },
     send:{
         position:'absolute',
         height:70,
         paddingLeft:10,
+        paddingRight:10,
         backgroundColor:'#1b211f',
         bottom:0,
         left:0,
         right:0,
         flexDirection:'row',
-        zIndex:0
+        zIndex:0,
+        alignItems:'center'
     },  
     sendinput:{
         color:'#ffffff',
@@ -52,16 +41,18 @@ export const chat = StyleSheet.create({
     chat_main:{
         height:'100%',
         paddingHorizontal:10,
-        paddingBottom:115
+        paddingBottom:115,
+        paddingTop:10,
+        paddingLeft:10
     },
     msgusername:{
         marginLeft:10,
         marginTop:5,
-        color:'#ffffff',
+        color:styles.text.color,
         fontSize:20
     },
     msgcontent:{
-        color:'#ffffff',
+        color:styles.text.color,
         fontSize:20,
         flexWrap:'wrap'
     },
@@ -73,15 +64,24 @@ export const chat = StyleSheet.create({
         padding:5
     },
     timestamp:{
-        color:'lightblue'
+        color:'#4e4b5c'
     },
-    attachment_button:{
-        flex:1,
-        backgroundColor:'lightblue',
-        borderTopRightRadius:5,
-        borderBottomRightRadius:5,
+    action_button:{
+        width:45,
+        height:45,
+        marginHorizontal:5,
+        borderRadius:25,
         alignItems:'center',
         justifyContent:'center'
+    },
+    action_button_hollow:{
+        backgroundColor:'transparent',
+        borderWidth:2,
+        borderColor:'lightblue'
+    },
+    action_button_icon:{
+        width:25, 
+        height:25
     },
     attachment_thumbnail:{
         width:70,

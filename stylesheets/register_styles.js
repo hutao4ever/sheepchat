@@ -72,11 +72,13 @@ export const mystyles = StyleSheet.create({
     },
   
     input:{
-      width:'85%'
+      width:'85%',
+      color:"white"
     },
   
     button:{
-      width:150
+      width:150,
+      backgroundColor:"#4b5ae3"
     },
   
     error_text:{

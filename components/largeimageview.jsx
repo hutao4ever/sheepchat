@@ -34,13 +34,14 @@ export const LargeImageView = ({source, index, closefunc})=>{
     const carousel = useRef();
 
     useEffect(()=>{
+        console.log(index)
         carousel.current.snapToItem(index, false);
     }, [source, index]);
 
     return (
         <View style={style.overlay}>
-            <Pressable onPress={closefunc} style={{position:'absolute',right:10, top: 10, zIndex:2}}>
-                <Image source={close_icon} style={{width:40, height:40}}></Image>
+            <Pressable onPress={closefunc} style={{flexDirection: 'row', flex: 1, zIndex:1}}>
+                <Image source={close_icon} style={{width:40, height:40, marginLeft:'auto'}}></Image>
             </Pressable>
             <Carousel 
                 ref={carousel}
@@ -63,7 +64,7 @@ export const LargeImageView = ({source, index, closefunc})=>{
                 }}
             />
             <View style={{position:'absolute', bottom:0,  width:'100%', alignItems:'center'}}> 
-                <RippleButton content={saveSuccess?"保存成功":"保存至相册"} onClick={()=>{if(!saveSuccess){handleImageSave(`${server}/api/getfile?id=${source[imageIndex]}`, setSaveSuccess)}}} />
+                <RippleButton style={{width:100}} content={saveSuccess?"保存成功":"保存至相册"} textcolor={"black"} onClick={()=>{if(!saveSuccess){handleImageSave(`${server}/api/getfile?id=${source[imageIndex]}`, setSaveSuccess)}}} />
             </View>
         </View>
     )

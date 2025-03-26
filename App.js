@@ -12,17 +12,19 @@ import { styles } from './stylesheets/styles';
 import { loginDB } from './localdb';
 import { ConnectionStatusDisplay } from './components/connectionstat';
 
+import './cache_manager';
+
 /** Warning: spghetti code */
 
 const Stack = createNativeStackNavigator();
 
-const LoginPage = ({navigation, theme, setSocket, setUsername, setLoginStatus, serverName})=>{
+const LoginPage = ({navigation, theme, setSocket, setUsername, setUserID, setLoginStatus, serverName})=>{
   return (
     <>
       <StatusBar backgroundColor={'#1b211f'} />
       <Background theme={theme} />
       <View style={styles.center_container}>
-        <Login navigation={navigation} setSocket={setSocket} setLocalUsername={setUsername} setLoginStatus={setLoginStatus} />
+        <Login navigation={navigation} setSocket={setSocket} setLocalUsername={setUsername} setUserID={setUserID} setLoginStatus={setLoginStatus} />
         <ConnectionStatusDisplay server_name={serverName} />
       </View>
     </>
@@ -97,6 +99,7 @@ const checkconnect = async(setNetworkError, setServerName, only_check)=>{
 export default function App() {
   const [theme, setTheme] = useState(false);
   const [username, setUsername] = useState();
+  const [userID, setUserID] = useState();
   const [loginStatus, setLoginStatus] = useState();
   const [networkError, setNetworkError] = useState(false);
   const [serverName, setServerName] = useState();
@@ -125,11 +128,11 @@ export default function App() {
       <NavigationContainer style={{marginTop:-50}}>
         <Stack.Navigator>
           <Stack.Screen options={{headerShown:false}} name='Login'>
-            {(props) => <LoginPage {...props} theme={theme} setSocket={setSocket} setUsername={setUsername} setLoginStatus={setLoginStatus} serverName={serverName} />}
+            {(props) => <LoginPage {...props} theme={theme} setSocket={setSocket} setUsername={setUsername} setUserID={setUserID} setLoginStatus={setLoginStatus} serverName={serverName} />}
           </Stack.Screen>
           <Stack.Screen name='注册' component={RegisterPage} options={{headerStyle:{backgroundColor:'#BBE6E4'}}}/>
           <Stack.Screen name='Chat' options={{headerShown:false}}>
-            {(props) => <ChatPage {...props} theme={theme} socket={socket} setSocket={setSocket} username={username} setUsername={setUsername} />}
+            {(props) => <ChatPage {...props} theme={theme} socket={socket} userID={userID} username={username} setUsername={setUsername} />}
           </Stack.Screen>  
         </Stack.Navigator>
     

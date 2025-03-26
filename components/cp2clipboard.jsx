@@ -27,7 +27,7 @@ export const ClipboardIcon = ({onClick})=>{
         <Pressable style={{flexDirection:'row'}} onPress={handleClick}>
             <Animated.Image source={copiedimg} style={{marginRight:-25,marginTop:3, width:20, height:20, opacity:opacity_animation}} />
             <Animated.Image source={copyimg} style={{marginRight:5, marginLeft:5, marginTop:3, width:20, height:20, opacity:opacity_animation.interpolate({inputRange:[0,1], outputRange:[1,0]})}} />
-            <Text style={styles.text}>复制</Text>
+            <Text style={styles.text_white}>复制</Text>
         </Pressable>
     )
     

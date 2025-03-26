@@ -6,7 +6,6 @@ import { ScrollView } from "react-native-gesture-handler";
 import { RippleButton } from "./ripplebutton";
 import { styles } from "../stylesheets/styles";
 import { mystyles } from "../stylesheets/register_styles";
-import Slider from "./slider";
 
 function arrayEquals(a, b) {
     return Array.isArray(a) &&
@@ -124,25 +123,25 @@ export const Register = ({navigation}) => {
             <View style={mystyles.register}>
                 <Animated.View style={{...mystyles.registerSlidePanel, transform:[{translateX:form_animation_value}]
                 }}>
-                    {/*<View style={mystyles.banner}><Image source={logo} style={mystyles.register_img}></Image><Text style={{...styles.text, fontSize:25}}>羊论</Text></View>*/}
+                    {/*<View style={mystyles.banner}><Image source={logo} style={mystyles.register_img}></Image><Text style={{...styles.text_white, fontSize:25}}>羊论</Text></View>*/}
                     <ScrollView ref={scroll_view} style={mystyles.register_form}>
                         <View onLayout={(e)=>page_top.current=e.nativeEvent.layout}></View>
-                        <Text style={{...styles.text, ...mystyles.register_label}}>创建用户名</Text>
+                        <Text style={{...styles.text_white, ...mystyles.register_label}}>创建用户名</Text>
                         <TextInput id="username" style={{...styles.input, ...mystyles.input}} onChangeText={(text)=>{setUsername(text)}}></TextInput>
                         <Text style={mystyles.error_text}>{usernameErr}</Text>
                         
-                        <Text style={{...styles.text, ...mystyles.register_label}}>电子邮箱</Text>
+                        <Text style={{...styles.text_white, ...mystyles.register_label}}>电子邮箱</Text>
                         <TextInput id="email" style={{...styles.input, ...mystyles.input}} onChangeText={(text)=>{setEmail(text)}}></TextInput>
                         <Text style={mystyles.error_text}>{emailErr}</Text>
                         
                         <View onLayout={(e)=>pwd_layout.current=e.nativeEvent.layout}></View>
-                        <Text style={{...styles.text, ...mystyles.register_label}}>设置密码</Text>
+                        <Text style={{...styles.text_white, ...mystyles.register_label}}>设置密码</Text>
                         <TextInput id="password" style={{...styles.input, ...mystyles.input}} onChangeText={(text)=>{setPassword(text)}}></TextInput>
-                        <Text style={styles.text}>密码必须满足以下条件:</Text>
-                        {passwordRequirements.map((item, index)=><Text key={index} style={pwdRequires[index]?{textDecorationLine: 'line-through', textDecorationStyle: 'solid', ...styles.text}:styles.text}>{item.key}</Text>)}
+                        <Text style={styles.text_white}>密码必须满足以下条件:</Text>
+                        {passwordRequirements.map((item, index)=><Text key={index} style={pwdRequires[index]?{textDecorationLine: 'line-through', textDecorationStyle: 'solid', ...styles.text_white}:styles.text_white}>{item.key}</Text>)}
                         <Text style={mystyles.error_text}>{passwordErr}</Text>
                         
-                        <Text style={{...styles.text, ...mystyles.register_label}}>确认密码</Text>
+                        <Text style={{...styles.text_white, ...mystyles.register_label}}>确认密码</Text>
                         <TextInput 
                             id="confpassword" 
                             style={{...styles.input, ...mystyles.input}} 
@@ -165,9 +164,9 @@ export const Register = ({navigation}) => {
                     <View style={mystyles.registerResult}>
                         <Text style={styles.header}>注册完成!</Text>
                         <View style={{marginTop:40}}>
-                            <Text style={{...styles.text, fontSize:20}}>这是你的用户名: </Text>
+                            <Text style={{...styles.text_white, fontSize:20}}>这是你的用户名: </Text>
                             <Text style={{backgroundColor:"#34a1eb",color:"black",fontSize:25,marginVertical:5}} selectable={true} selectionColor="orange">  {usrname}  </Text>
-                            <Text style={{...styles.text, fontSize:20}}>可以使用此用户名或电子邮箱<Text onPress={()=>{navigation.navigate("Login")}} style={{textDecorationLine:"underline",textDecorationColor:"#ffffff"}}>登录</Text>。</Text>
+                            <Text style={{...styles.text_white, fontSize:20}}>可以使用此用户名或电子邮箱<Text onPress={()=>{navigation.navigate("Login")}} style={{textDecorationLine:"underline",textDecorationColor:"#ffffff"}}>登录</Text>。</Text>
                         </View>
                     </View>
                 </Animated.View>
